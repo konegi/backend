@@ -1,14 +1,23 @@
-# create-index.py
-import csv
-from llama_index import GPTVectorStoreIndex, SimpleWebPageReader
-from llama_index.langchain_helpers.chatgpt import ChatGPTLLMPredictor
+# pip install openai   これひつようなんだけどどうすりゃええんや
 
-article_urls = []
-with open('run_result.csv') as f:
-    reader = csv.reader(f)
-    for row in reader:
-        article_urls.append(row[0])
+import json
+import openai
+import os
 
-documents = SimpleWebPageReader().load_data(article_urls)
-index = GPTVectorStoreIndex,(documents=documents, llm_predictor=ChatGPTLLMPredictor())
-index.save_to_disk('index.json')    
+query = "query" # ここにinput
+with open('data.json') as f:
+    data = json.load(f)
+content = query + "以上の条件に当てはまるバイトを三つ提示してください"
+
+openai.api_key = os.environ("CHAT_GPT_KEY")
+
+response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "あなたはバイト探しをするプロフェッショナルです"},
+        {"role": "assistant", "content": data},
+        {"role": "user", "content": content},
+    ]   
+)
+print(f"ChatGPT: {response['choices'][0]['message']['content']}")
+print(response['usage'])
